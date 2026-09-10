@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import multiprocessing
 import os
-import queue
 import shutil
 import signal
 import time
 
 from contextlib import asynccontextmanager
-from multiprocessing.queues import Queue
 from types import FrameType
-from typing import Any
 
 import aiofiles
 import watchfiles
 
 from starlette.applications import Starlette
-from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -38,9 +33,8 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 import gallery_dl.version
 import yt_dlp.version
 
-from . import download, output, utils, version
-
-custom_args = output.args
+from . import output, utils, version
+from .queue import add_to_queue
 
 log_file = output.LOG_FILE
 last_line = ""
@@ -68,13 +62,11 @@ async def homepage(request: Request):
 
 
 async def submit_form(request: Request):
-    """Process form submission data and start download in the background."""
+    """Add a URL to the download queue."""
     form_data = await request.form()
 
-    keys = ("url", "video-opts")
-    values = tuple(form_data.get(key) for key in keys)
-
-    url, video_opts = (None if isinstance(value, UploadFile) else value for value in values)
+    value = form_data.get("url")
+    url = None if isinstance(value, UploadFile) else value
 
     if not url:
         log.error("No URL provided.")
@@ -86,62 +78,17 @@ async def submit_form(request: Request):
             },
         )
 
-    if not video_opts:
-        video_opts = "none-selected"
-
-    request_options = {"video-options": video_opts}
-
-    task = BackgroundTask(download_task, url.strip(), request_options)
+    url = url.strip()
+    add_to_queue(url)
 
     log.info("Added URL to the download queue: %s", url)
 
     return JSONResponse(
         {
-            "success": True,
+            "status": "queued",
             "url": url,
-            "options": request_options,
-        },
-        background=task,
+        }
     )
-
-
-def download_task(url: str, request_options: dict[str, str]):
-    """Initiate download as a subprocess and log the output."""
-    log_queue: Queue[dict[str, Any]] = multiprocessing.Queue()
-    return_status: Queue[int] = multiprocessing.Queue()
-
-    args = (url, request_options, log_queue, return_status, custom_args)
-
-    process = multiprocessing.Process(target=download.run, args=args)
-    process.start()
-
-    while True:
-        if log_queue.empty() and not process.is_alive():
-            break
-        try:
-            record_dict = log_queue.get(timeout=1)
-            record = output.dict_to_record(record_dict)
-
-            if record.levelno >= output.LOG_LEVEL_MIN:
-                log.handle(record)
-
-            if "Video should already be available" in record.getMessage():
-                log.warning("Terminating process as video is not available")
-                process.kill()
-        except queue.Empty:
-            continue
-
-    process.join()
-
-    try:
-        exit_code = return_status.get(block=False)
-    except queue.Empty:
-        exit_code = process.exitcode
-
-    if exit_code == 0:
-        log.info("Download process exited successfully")
-    else:
-        log.error("Download failed with exit code: %s", exit_code)
 
 
 async def log_route(request: Request):

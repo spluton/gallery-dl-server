@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 from itertools import chain
 from multiprocessing.queues import Queue

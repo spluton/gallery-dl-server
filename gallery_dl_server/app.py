@@ -3,6 +3,7 @@
 import uvicorn
 
 from . import options
+from .worker import start_worker
 
 
 def main(
@@ -13,6 +14,8 @@ def main(
     """Main entry point for gallery-dl-server."""
     if args is None:
         args = options.parse_args(is_main_module)
+
+    start_worker()
 
     kwargs = {
         "host": args.host,

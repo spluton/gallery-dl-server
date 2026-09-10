@@ -23,6 +23,8 @@ def clear(conf: dict[str, Any] = _config):
 
 def get_default_configs():
     """Return default gallery-dl configuration file locations."""
+    package_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config")
+
     if utils.CONTAINER:
         _default_configs = [
             "/config/gallery-dl.conf",
@@ -42,6 +44,8 @@ def get_default_configs():
             else "${HOME}/.config/gallery-dl/config.json",
             "${HOME}/.gallery-dl.conf",
         ]
+
+    _default_configs.append(os.path.join(package_config, "gallery-dl.conf"))
 
     if utils.EXECUTABLE:
         _default_configs.extend(
