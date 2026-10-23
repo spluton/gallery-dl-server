@@ -1,27 +1,27 @@
 # gallery-dl-server
 
-[![GitHub Release](https://img.shields.io/github/v/release/qx6ghqkz/gallery-dl-server?logo=github&style=for-the-badge)](https://github.com/qx6ghqkz/gallery-dl-server/releases/latest "Latest Release")
+[![GitHub Release](https://img.shields.io/github/v/release/spluton/gallery-dl-server?logo=github&style=for-the-badge)](https://github.com/spluton/gallery-dl-server/releases/latest "Latest Release")
 [![PyPI - Version](https://img.shields.io/pypi/v/gallery-dl-server?logo=pypi&style=for-the-badge)](https://pypi.org/project/gallery-dl-server "PyPI")
-[![Docker Image Version](https://img.shields.io/docker/v/qx6ghqkz/gallery-dl-server?logo=docker&label=Docker&sort=semver&style=for-the-badge)](https://hub.docker.com/r/qx6ghqkz/gallery-dl-server "Docker")
-[![Docker Pulls](https://img.shields.io/docker/pulls/qx6ghqkz/gallery-dl-server.svg?logo=docker&style=for-the-badge)](https://hub.docker.com/r/qx6ghqkz/gallery-dl-server/tags "Docker Tags")
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/qx6ghqkz/gallery-dl-server/docker-image.yaml?branch=main&style=for-the-badge)](https://github.com/qx6ghqkz/gallery-dl-server/actions "GitHub Actions")
-[![Commits](https://img.shields.io/github/commit-activity/m/qx6ghqkz/gallery-dl-server?label=Commits&style=for-the-badge)](https://github.com/qx6ghqkz/gallery-dl-server/commits/main/ "Commit History")
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://raw.githubusercontent.com/qx6ghqkz/gallery-dl-server/master/LICENSE "License")
+[![Docker Image Version](https://img.shields.io/docker/v/spluton/gallery-dl-server?logo=docker&label=Docker&sort=semver&style=for-the-badge)](https://hub.docker.com/r/spluton/gallery-dl-server "Docker")
+[![Docker Pulls](https://img.shields.io/docker/pulls/spluton/gallery-dl-server.svg?logo=docker&style=for-the-badge)](https://hub.docker.com/r/spluton/gallery-dl-server/tags "Docker Tags")
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/spluton/gallery-dl-server/docker-image.yaml?branch=testing&style=for-the-badge)](https://github.com/spluton/gallery-dl-server/actions "GitHub Actions")
+[![Commits](https://img.shields.io/github/commit-activity/m/spluton/gallery-dl-server?label=Commits&style=for-the-badge)](https://github.com/spluton/gallery-dl-server/commits/testing/ "Commit History")
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://github.com/spluton/gallery-dl-server/blob/main/LICENSE "License")
 
-![screenshot](https://raw.githubusercontent.com/qx6ghqkz/gallery-dl-server/refs/heads/main/images/gallery-dl-server.png)
+![screenshot](https://raw.githubusercontent.com/spluton/gallery-dl-server/refs/heads/main/images/gallery-dl-server.png)
 
 Web UI for [`gallery-dl`](https://github.com/mikf/gallery-dl) with support for downloading videos via [`yt-dlp`](https://github.com/yt-dlp/yt-dlp).
 
-* [Running](https://github.com/qx6ghqkz/gallery-dl-server#running)
-  * [Docker](https://github.com/qx6ghqkz/gallery-dl-server#docker)
-  * [Python](https://github.com/qx6ghqkz/gallery-dl-server#python)
-  * [Standalone Executable](https://github.com/qx6ghqkz/gallery-dl-server#standalone-executable)
-* [Options](https://github.com/qx6ghqkz/gallery-dl-server#options)
-* [Dependencies](https://github.com/qx6ghqkz/gallery-dl-server#dependencies)
-* [Configuration](https://github.com/qx6ghqkz/gallery-dl-server#configuration)
-* [Usage](https://github.com/qx6ghqkz/gallery-dl-server#usage)
-* [Implementation](https://github.com/qx6ghqkz/gallery-dl-server#implementation)
-* [Useful Links](https://github.com/qx6ghqkz/gallery-dl-server#useful-links)
+* [Running](https://github.com/spluton/gallery-dl-server#running)
+  * [Docker](https://github.com/spluton/gallery-dl-server#docker)
+  * [Python](https://github.com/spluton/gallery-dl-server#python)
+  * [Standalone Executable](https://github.com/spluton/gallery-dl-server#standalone-executable)
+* [Options](https://github.com/spluton/gallery-dl-server#options)
+* [Dependencies](https://github.com/spluton/gallery-dl-server#dependencies)
+* [Configuration](https://github.com/spluton/gallery-dl-server#configuration)
+* [Usage](https://github.com/spluton/gallery-dl-server#usage)
+* [Implementation](https://github.com/spluton/gallery-dl-server#implementation)
+* [Useful Links](https://github.com/spluton/gallery-dl-server#useful-links)
 
 ## Running
 
@@ -40,7 +40,7 @@ docker run -d \
   -v "/path/to/config:/config" \
   -v "/path/to/downloads:/gallery-dl" \
   --restart on-failure \
-  qx6ghqkz/gallery-dl-server:latest
+  spluton/gallery-dl-server:latest
 ```
 
 #### Docker Compose
@@ -50,7 +50,7 @@ This is an example of a `docker-compose.yaml` service definition which can be us
 ```yaml
 services:
   gallery-dl:
-    image: qx6ghqkz/gallery-dl-server:latest
+    image: spluton/gallery-dl-server:latest
     container_name: gallery-dl
     ports:
       - "9080:9080"
@@ -68,7 +68,7 @@ This is another example which uses a VPN client container for its networking.
 ```yaml
 services:
   gallery-dl:
-    image: qx6ghqkz/gallery-dl-server:latest
+    image: spluton/gallery-dl-server:latest
     container_name: gallery-dl
     network_mode: container:vpn
     environment:
@@ -80,7 +80,7 @@ services:
     restart: on-failure
 ```
 
-[Gluetun](https://github.com/qdm12/gluetun) is recommended for VPN usage. See [docs/docker-compose.yaml](https://github.com/qx6ghqkz/gallery-dl-server/blob/main/docs/docker-compose.yaml) for an example.
+[Gluetun](https://github.com/qdm12/gluetun) is recommended for VPN usage. See [docs/docker-compose.yaml](https://github.com/spluton/gallery-dl-server/blob/main/docs/docker-compose.yaml) for an example.
 
 #### Port Mapping
 
@@ -91,7 +91,7 @@ For example, to run multiple instances of gallery-dl-server using a single [Glue
 ```yaml
 services:
   instance-1:
-    image: qx6ghqkz/gallery-dl-server:latest
+    image: spluton/gallery-dl-server:latest
     container_name: day
     depends_on:
       - gluetun
@@ -99,7 +99,7 @@ services:
     # More settings here...
 
   instance-2:
-    image: qx6ghqkz/gallery-dl-server:latest
+    image: spluton/gallery-dl-server:latest
     container_name: night
     environment:
       - "CONTAINER_PORT=9090"
@@ -192,7 +192,7 @@ python3 -m uvicorn gallery_dl_server.server:app --host "0.0.0.0" --port "9080" -
 
 ### Standalone Executable
 
-On Windows, the program can be run using the prebuilt `.exe` file, which includes a Python interpreter and the required Python packages. Prebuilt executables for each release can be found in [Releases](https://github.com/qx6ghqkz/gallery-dl-server/releases).
+On Windows, the program can be run using the prebuilt `.exe` file, which includes a Python interpreter and the required Python packages. Prebuilt executables for each release can be found in [Releases](https://github.com/spluton/gallery-dl-server/releases).
 
 The executable can be run from the command line with the same arguments as the Python package.
 
@@ -263,7 +263,7 @@ When run with Docker, the configuration file must be inside the directory mounte
 - `/config/gallery-dl.{conf, toml, yaml, yml}`
 - `/config/config.{json, toml, yaml, yml}`
 
-A [default configuration file](https://github.com/qx6ghqkz/gallery-dl-server/blob/main/docs/gallery-dl.conf) for use with gallery-dl-server will automatically be placed in the directory mounted to `/config` if none are found.
+A [default configuration file](https://github.com/spluton/gallery-dl-server/blob/main/docs/gallery-dl.conf) for use with gallery-dl-server will automatically be placed in the directory mounted to `/config` if none are found.
 
 For more information on configuration file options, see [gallery-dl/docs/configuration.rst](https://github.com/mikf/gallery-dl/blob/master/docs/configuration.rst).
 
