@@ -46,6 +46,19 @@ def parse_args(is_main_module: bool = False):
         help="log file directory (default: user home directory)",
     )
 
+    default_log_max_size = os.environ.get("LOG_MAX_SIZE", "2")
+    try:
+        default_log_max_size = int(default_log_max_size)
+    except ValueError:
+        default_log_max_size = 2
+
+    parser.add_argument(
+        "--log-max-size",
+        type=int,
+        default=default_log_max_size,
+        help="maximum log file size in MB before rotation (default: 2)",
+    )
+
     parser.add_argument(
         "--log-level",
         type=str,
@@ -79,6 +92,7 @@ def validate_args(parser: ArgumentParser, args: Namespace):
     host: str = args.host
     port: int = args.port
     log_dir: str = args.log_dir
+    log_max_size: int = args.log_max_size
     log_level: str = args.log_level
     server_log_level: str = args.server_log_level
     access_log: str = args.access_log
@@ -88,6 +102,9 @@ def validate_args(parser: ArgumentParser, args: Namespace):
 
     if log_dir != "" and not os.path.isdir(utils.normalise_path(log_dir)):
         parser.error("invalid value for --log-dir, must be a path to an existing directory")
+
+    if log_max_size < 1:
+        parser.error("invalid value for --log-max-size, must be a positive integer (in MB)")
 
     log_levels = ["critical", "error", "warning", "info", "debug"]
 
@@ -106,6 +123,7 @@ def validate_args(parser: ArgumentParser, args: Namespace):
         host=host,
         port=port,
         log_dir=utils.normalise_path(log_dir),
+        log_max_size=log_max_size,
         log_level=log_level.lower(),
         server_log_level=server_log_level.lower(),
         access_log=access_log.lower() == "true",
@@ -117,6 +135,13 @@ def get_default_args():
     host = os.environ.get("HOST", "0.0.0.0")
     port = os.environ.get("PORT", "0")
     log_dir = os.environ.get("LOG_DIR", "")
+
+    log_max_size = os.environ.get("LOG_MAX_SIZE", "2")
+    try:
+        log_max_size = int(log_max_size)
+    except ValueError:
+        log_max_size = 2
+
     log_level = os.environ.get("LOG_LEVEL", "info")
     server_log_level = os.environ.get("SERVER_LOG_LEVEL", "info")
     access_log = os.environ.get("ACCESS_LOG", "false")
@@ -125,6 +150,7 @@ def get_default_args():
         host=host,
         port=int(port),
         log_dir=utils.normalise_path(log_dir),
+        log_max_size=log_max_size,
         log_level=log_level.lower(),
         server_log_level=server_log_level.lower(),
         access_log=access_log.lower() == "true",
@@ -139,6 +165,7 @@ class CustomNamespace(Namespace):
         host: str,
         port: int,
         log_dir: str,
+        log_max_size: int,
         log_level: str,
         server_log_level: str,
         access_log: bool,
@@ -147,6 +174,7 @@ class CustomNamespace(Namespace):
         self.host = host
         self.port = port
         self.log_dir = log_dir
+        self.log_max_size = log_max_size
         self.log_level = log_level
         self.server_log_level = server_log_level
         self.access_log = access_log
@@ -168,6 +196,13 @@ class CustomNamespace(Namespace):
         if not isinstance(self.log_dir, str):
             raise TypeError(
                 "Expected 'log_dir' to be of type str, got {}".format(type(self.log_dir).__name__)
+            )
+
+        if not isinstance(self.log_max_size, int):
+            raise TypeError(
+                "Expected 'log_max_size' to be of type int, got {}".format(
+                    type(self.log_max_size).__name__
+                )
             )
 
         if not isinstance(self.log_level, str):

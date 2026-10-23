@@ -184,6 +184,21 @@ async def log_stream(request: Request):
     return StreamingResponse(file_iterator(log_file), media_type="text/plain")
 
 
+async def detect_rotation(file) -> bool:
+    """Check whether the log file was rotated (truncated) under an open handle."""
+    try:
+        file_size = os.path.getsize(log_file)
+    except OSError:
+        file_size = 0
+
+    if file_size >= await file.tell():
+        return False
+
+    await file.seek(0)
+
+    return True
+
+
 async def log_update(websocket: WebSocket):
     """Stream log file updates over WebSocket connection."""
     global last_line, last_position
@@ -204,6 +219,10 @@ async def log_update(websocket: WebSocket):
                 rust_timeout=100,
                 yield_on_timeout=True,
             ):
+                if await detect_rotation(file):
+                    last_line = ""
+                    last_position = 0
+
                 new_content = ""
                 do_update_state = False
 

@@ -204,6 +204,8 @@ async function fetchLogs() {
   }
 }
 
+const maxBoxLines = 2000;
+
 function connectWebSocket(allowReconnect = true) {
   const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
   const host = window.location.host;
@@ -246,6 +248,12 @@ function connectWebSocket(allowReconnect = true) {
     }
 
     lines.push(...newLines.slice(progressUpdate ? 1 : 0));
+
+    if (lines.length > maxBoxLines) {
+      const overflow = lines.length - maxBoxLines;
+      lines.splice(0, overflow);
+      lastPos = lastPos > overflow ? lastPos - overflow : 0;
+    }
 
     box.textContent = lines.join("\n") + "\n";
 

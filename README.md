@@ -219,6 +219,7 @@ Use the arguments when running the server directly from the command line, and th
 | &mdash;               | `GID`                | &check;     | `int`  | Any valid group ID                                                 | `1000`        | Group ID to run the server process |
 | &mdash;               | `UMASK`              | &check;     | `int`  | Any valid `umask` value                                            | `022`         | Set `umask` for file permissions   |
 | `‑‑log‑dir`           | `LOG_DIR`            | &cross;     | `str`  | Any existing directory                                             | `~`           | Set the log file directory         |
+| `‑‑log‑max‑size`      | `LOG_MAX_SIZE`       | &cross;     | `int`  | Any positive integer                                               | `2`           | Rotate the log file after it reaches this size in MB |
 | `‑‑log‑level`         | `LOG_LEVEL`          | &cross;     | `str`  | `critical`<br>`error`<br>`warning`<br>`info`<br>`debug`            | `info`        | Set the download log level         |
 | `‑‑server‑log‑level`  | `SERVER_LOG_LEVEL`   | &cross;     | `str`  | `critical`<br>`error`<br>`warning`<br>`info`<br>`debug`<br>`trace` | `info`        | Set the server log level           |
 | `‑‑access‑log`        | `ACCESS_LOG`         | &cross;     | `bool` | `true`<br>`false`                                                  | `false`       | Enable the server access log       |

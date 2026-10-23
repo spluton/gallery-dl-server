@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 
 import asyncio
@@ -41,6 +42,9 @@ LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 LOG_FORMAT_DEBUG = "%(asctime)s [%(name)s] [%(filename)s:%(lineno)d] [%(levelname)s] %(message)s"
 LOG_FORMAT_DATE = "%Y-%m-%d %H:%M:%S"
 LOG_SEPARATOR = "/sep/"
+LOG_MAX_BYTES = max(1, args.log_max_size) * 1024 * 1024
+
+_rotate_lock = threading.Lock()
 
 
 def initialise_logging(
@@ -120,11 +124,41 @@ def setup_file_handler(file: str, formatter: logging.Formatter):
     """Set up a file handler for logging."""
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
-    file_handler = logging.FileHandler(file, mode="a", encoding="utf-8", delay=False)
+    file_handler = CappedFileHandler(file, mode="a", encoding="utf-8", delay=False)
     file_handler.setFormatter(formatter)
     register_handler(file_handler)
 
     return file_handler
+
+
+def rotate_log_if_needed(file: str = LOG_FILE, max_bytes: int = LOG_MAX_BYTES):
+    """Copy and truncate the log file once it reaches the maximum size."""
+    try:
+        if os.path.getsize(file) < max_bytes:
+            return
+
+        with _rotate_lock:
+            if os.path.getsize(file) < max_bytes:
+                return
+
+            shutil.copyfile(file, file + ".1")
+
+            with open(file, "w", encoding="utf-8"):
+                pass
+    except OSError:
+        return
+
+    get_logger(utils.get_package_name()).info(
+        f"Log file exceeded {max_bytes // (1024 * 1024)} MB and was rotated to {file}.1"
+    )
+
+
+class CappedFileHandler(logging.FileHandler):
+    """File handler that rotates the log file before it grows past the size limit."""
+
+    def emit(self, record):
+        rotate_log_if_needed(self.baseFilename)
+        super().emit(record)
 
 
 def get_logger(name: str | None = None):
@@ -327,7 +361,7 @@ class ConsoleProgress(logging.StreamHandler):
         self.last_msg = msg
 
 
-class FileProgress(logging.FileHandler):
+class FileProgress(CappedFileHandler):
     """Custom file handler that can handle progress updates asynchronously."""
 
     def __init__(self, filename=LOG_FILE, mode="a", encoding="utf-8", delay=False):
@@ -341,6 +375,7 @@ class FileProgress(logging.FileHandler):
 
     def emit(self, record):
         """Override emit method to queue progress messages."""
+        rotate_log_if_needed(self.baseFilename)
         msg = self.format(record)
 
         if "B/s" in msg:
@@ -360,9 +395,16 @@ class FileProgress(logging.FileHandler):
 
     def write_to_file(self, msg: str):
         """Write download progress to the memory-mapped log file."""
-        with open(self.baseFilename, "r+b") as file:
-            with mmap(file.fileno(), 0, access=ACCESS_WRITE) as mm:
-                self.write_progress(mm, msg)
+        try:
+            with open(self.baseFilename, "r+b") as file:
+                with mmap(file.fileno(), 0, access=ACCESS_WRITE) as mm:
+                    if self.last_pos > mm.size():
+                        self.last_pos = 0
+
+                    self.write_progress(mm, msg)
+        except (OSError, ValueError):
+            # The file was rotated, truncated or is temporarily unreadable.
+            self.last_pos = 0
 
     def write_progress(self, mmap: mmap, msg: str):
         """Write download progress updates to the same line."""
